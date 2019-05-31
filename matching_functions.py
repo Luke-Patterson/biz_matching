@@ -21,7 +21,7 @@ import time
 from wordfreq import word_frequency
 # identify match based on similarity of FDA DBA and SoS business names
 def name_match_scoring(from_df, to_df, from_colname = 'DBA Name',
-    to_colname = 'bizname', id_var='id', match_type = 'multi',thresh=.9):
+    to_colname = 'bizname', match_type = 'multi', thresh=.9):
 
     # Input: two dataframes to compare name values of
     # Parameters:
@@ -92,7 +92,7 @@ def name_match_scoring(from_df, to_df, from_colname = 'DBA Name',
             columns=in_df.columns)
         match_df = pd.DataFrame(vfunc(find_df, in_df), index=in_df.index,
             columns=in_df.columns)
-        score_df = to_df.loc[:, [id_var]]
+        score_df = pd.DataFrame(index = to_df.index)
         score_df['name_score'] = (score_to * match_df.astype('int')).sum(axis=1)
 
         # 2nd way: find if each word in each in_df row is in find_string
@@ -132,7 +132,7 @@ def name_match_scoring(from_df, to_df, from_colname = 'DBA Name',
         # option return all matches above threshold
         if match_type == 'multi':
             if score_df.agg_score.max() >= thresh:
-                idx_max = score_df.loc[score_df['agg_score']>=thresh,'ID'].values
+                idx_max = score_df.loc[score_df['agg_score']>=thresh].index.values
                 print('Match found for ' + find_str)
                 print('Best match is: ' + in_phrase.loc[score_df.agg_score.idxmax()])
                 print('Number of matches found: ' + str(len(idx_max)))
@@ -142,15 +142,10 @@ def name_match_scoring(from_df, to_df, from_colname = 'DBA Name',
                 print('Closest match is: ' + in_phrase.loc[score_df.agg_score.idxmax()])
         return(idx_max)
 
-    # take from_phrase, and return a Pandas series of
+    # take from_phrase, and return a Pandas series of matches
     to_id_match = from_phrase.apply(iter_compare, in_df = to_split, in_phrase = to_phrase,
         score_to = score_to)
     return(to_id_match)
-
-
-    # record scores of each way
-
-
 
 # ------------------------------------------------------------------------------
 # 2. address_match_scoring
